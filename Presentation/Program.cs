@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using System.Reflection;
 using Todo.Core.Entities;
 using Todo.DAL.Data;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +19,7 @@ builder.Services.AddDbContextPool<TodoDbContext>(opt => opt.UseSqlServer(connect
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opt =>
 {
     opt.User.RequireUniqueEmail = true;
-    opt.Stores.ProtectPersonalData = true;
+    opt.Stores.ProtectPersonalData = false;
     opt.SignIn.RequireConfirmedEmail = false;
 }).AddEntityFrameworkStores<TodoDbContext>()
 .AddDefaultTokenProviders();
@@ -36,6 +34,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddMemoryCache();
 builder.Services.AddSession(opt =>
 {
     opt.IdleTimeout = TimeSpan.FromMinutes(5);
@@ -50,16 +49,8 @@ builder.Services.ConfigureLoggerService();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Gems-Consult Todo Service",
-        Version = "1.0",
-        Description = "This is a standardized service for organizing what to do.",
-    });
-    c.IncludeXmlComments(Path.ChangeExtension(Assembly.GetEntryAssembly().Location, "xml"));
-});
+builder.Services.ConfigureSwagger();
+builder.Services.ConfigureJwtAuthentication(builder.Configuration);
 
 //Add Dependency
 builder.Services.InjectDependencies();

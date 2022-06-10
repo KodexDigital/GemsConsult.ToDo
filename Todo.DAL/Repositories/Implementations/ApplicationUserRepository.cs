@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Data.Entity;
 using Todo.Core.Common;
 using Todo.Core.Dtos;
 using Todo.Core.Entities;

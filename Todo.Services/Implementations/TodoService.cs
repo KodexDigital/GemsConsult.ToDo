@@ -1,4 +1,6 @@
-﻿using Todo.Core.Common;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Todo.Core.Common;
 using Todo.Core.Dtos;
 using Todo.Core.Entities;
 using Todo.DAL.Repositories.Declarations;
@@ -12,87 +14,164 @@ namespace Todo.Services.Implementations
         private readonly ITodoRepository repo;
         private readonly IUnitOfWork uow;
         private readonly ILoggerManager logger;
+        private readonly IMemoryCache memoryCache;
+        private readonly IConfiguration config;
+        private readonly string defaultName = nameof(TodoService);
 
-        public TodoService(ITodoRepository repo, IUnitOfWork uow, ILoggerManager logger)
+        public TodoService(ITodoRepository repo, IUnitOfWork uow, ILoggerManager logger, 
+            IMemoryCache memoryCache, IConfiguration config)
         {
             this.repo = repo;
             this.uow = uow;
             this.logger = logger;
+            this.memoryCache = memoryCache;
+            this.config = config;
         }
         public async Task<ResponseModel> CreateTodoItem(TodoDto dto)
         {
-            var response = new ResponseModel();
-            var itemExists = await uow.TodoRepository.ExistAsync(c => c.ItemName.ToLower().Equals(dto.ItemName.ToLower()));
-            if (itemExists)
+            string location = string.Concat(defaultName, "<-----", nameof(CreateTodoItem));
+            try
             {
-                response.Status = false;
-                response.Message = "Item already exists";
+                var response = new ResponseModel();
+                var itemExists = await uow.TodoRepository.ExistAsync(c => c.ItemName.ToLower().Equals(dto.ItemName.ToLower()));
+                if (itemExists)
+                {
+                    response.Status = false;
+                    response.Message = "Item already exists";
+                }
 
-                logger.LogInfo($"{response}");
+                repo.Add(new TodoEntity
+                {
+                    ItemName = dto.ItemName,
+                    Description = dto.Description,
+                    ExecutionDate = dto.ExecutionDate,
+                    ApplicationUserId = dto.UserId
+                });
+
+                var result = await uow.ExecuteCommandAsync();
+
+                if (result > 0)
+                {
+                    response.Status = true;
+                    response.Message = $"Item added successfully";
+                }
+                else
+                {
+                    response.Status = false;
+                    response.Message = "Item was not successful";
+                }
+
+                logger.LogInfo($"{location} ::: {response}");
+                return response;
             }
-
-            repo.Add(new TodoEntity
+            catch (Exception ex)
             {
-                ItemName = dto.ItemName,
-                Description = dto.Description,
-                ExecutionDate = dto.ExecutionDate,
-            });
-
-            var result = await uow.ExecuteCommandAsync();
-
-            if (result > 0)
-            {
-                response.Status = true;
-                response.Message = $"Item added successfully";
-
-                logger.LogInfo($"{response}");
+                logger.LogInfo($"{location} ::: {ex.Message}");
+                throw;
             }
-            else
-            {
-                response.Status = false;
-                response.Message = "Item was not successful";
-
-                logger.LogInfo($"{response}");
-            }
-
-            logger.LogInfo($"{response}");
-            return response;
         }
 
         public async Task<ResponseModel> ExecuteedItemUpdate(int itemId)
         {
-            var response = new ResponseModel();
-            var item = await uow.TodoRepository.GetAsync(i => i.TodoId.Equals(itemId));
-            if(item != null)
+            string location = string.Concat(defaultName, "<-----", nameof(ExecuteedItemUpdate));
+            try
             {
-                item.IsExecuted = true;
-                await uow.ExecuteCommandAsync();
+                var response = new ResponseModel();
+                var item = await uow.TodoRepository.GetAsync(i => i.TodoId.Equals(itemId));
+                if (item != null)
+                {
+                    if (!item.Remove)
+                    {
+                        item.IsExecuted = true;
+                        await uow.ExecuteCommandAsync();
 
-                response.Status = true;
-                response.Message = "Item excuted";
+                        response.Status = true;
+                        response.Message = "Item excuted";
+                    }
 
-                logger.LogInfo($"{response}");
+                    response.Status = false;
+                    response.Message = "Item has been removed";
+                }
+                else
+                {
+                    response.Status = false;
+                    response.Message = "Item not not found"; 
+                }
+
+                logger.LogInfo($"{location} ::: {response}");
+                return response;
             }
-            else
+            catch (Exception ex)
             {
-                response.Status = false;
-                response.Message = "Item not not found";
-
-                logger.LogInfo($"{response}");
+                logger.LogInfo($"{location} ::: {ex.Message}");
+                throw;
             }
-
-            return response;
         }
-        public async Task<ResponseModel<IEnumerable<TodoEntity>>> GetAllTodos()
+        public async Task<ResponseModel<List<TodoEntity>>> GetAllTodos()
         {
-            var list = await uow.TodoRepository.GetAsync();
-            logger.LogInfo(list.Count() > 0 ? $"{list.Count()} Item(s) found" : "No record found");
-            return new ResponseModel<IEnumerable<TodoEntity>>
+            string location = string.Concat(defaultName, "<-----", nameof(GetAllTodos));
+            try
             {
-                Status = list.Count() > 0,
-                Data = list.OrderByDescending(l => l.ExecutionDate),
-                Message = list.Count() > 0 ? $"{list.Count()} Item(s) found" : "No record found"
-            };
+                var cacheKey = config.GetSection("InMemoryCache:CacheKey").Value;
+                if (!memoryCache.TryGetValue(cacheKey, out ResponseModel<List<TodoEntity>> list))
+                {
+                    list = await uow.TodoRepository.AllTodoItems();
+                    var cacheExpiration = new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpiration = DateTime.Now.AddMinutes(10),
+                        Priority = CacheItemPriority.High,
+                        SlidingExpiration = TimeSpan.FromMinutes(5),
+                    };
+
+                    memoryCache.Set(cacheKey, list, cacheExpiration);
+                }
+
+                logger.LogInfo(list.Data.Count() > 0 ? $"{location} ::: {list.Data.Count()} Item(s) found" : $"{location} ::: No record found");
+                return new ResponseModel<List<TodoEntity>>
+                {
+                    Status = list.Data.Count() > 0,
+                    Data = list.Data,
+                    Message = list.Data.Count() > 0 ? $"{list.Data.Count()} Item(s) found" : "No record found"
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.LogInfo($"{location} ::: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ResponseModel> RemoveItem(int itemId)
+        {
+            string location = string.Concat(defaultName, "<-----", nameof(RemoveItem));
+            try
+            {
+                var item = await uow.TodoRepository.GetAsync(t => t.TodoId.Equals(itemId));
+                if (item != null)
+                {
+                    item.Remove = true;
+                    await uow.ExecuteCommandAsync();
+
+                    logger.LogInfo($"{location} ::: Item removed successfully");
+                    return new ResponseModel
+                    {
+                        Status = true,
+                        Message = "Item removed successfully"
+                    };
+                }
+
+                logger.LogInfo($"{location} ::: Error removing item");
+                return new ResponseModel
+                {
+                    Status = false,
+                    Message = "Error removing item"
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.LogInfo($"{location} ::: {ex.Message}");
+                throw;
+            }
         }
     }
 }
