@@ -17,7 +17,7 @@ namespace Todo.Core.Entities
 
         public TodoEntity()
         {
-            ExecutionDate = DateTime.Now;
+            CreatedAt = DateTime.Now;
             IsExecuted = false;
             Remove = false;
         }

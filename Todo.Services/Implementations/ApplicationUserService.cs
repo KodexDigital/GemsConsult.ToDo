@@ -101,7 +101,7 @@ namespace Todo.Services.Implementations
                 throw;
             }
         }
-        public async Task<AuthenticateResponseDto> LoginAsync(AuthenticationRequestDto model)
+        public async Task<ResponseModel<AuthenticateResponseDto>> LoginAsync(AuthenticationRequestDto model)
         {
             string location = string.Concat(defaultName, "<-----", nameof(LoginAsync));
             try
@@ -128,18 +128,30 @@ namespace Todo.Services.Implementations
                         authResponse.Status = true;
                         authResponse.Message = "Login successful";
 
-                        logger.LogInfo($"{location} ::: {authResponse}");
+                        logger.LogInfo($"{location} ::: {authResponse.Status + "<>" + authResponse.Message}");
                     }
                     else
                     {
                         authResponse.Status = false;
                         authResponse.Message = "Login failed";
 
-                        logger.LogInfo($"{location} ::: {authResponse}");
+                        logger.LogInfo($"{location} ::: {authResponse.Status +"<>"+ authResponse.Message}");
                     }
+
+                    return new ResponseModel<AuthenticateResponseDto>
+                    {
+                        Status = authResponse.Status,
+                        Message = authResponse.Message,
+                        Data = new AuthenticateResponseDto(authResponse, token)
+                    };
                 }
 
-                return new AuthenticateResponseDto(authResponse, token);
+                return new ResponseModel<AuthenticateResponseDto>
+                {
+                    Status = false,
+                    Message = "Login Failed",
+                    Data = null
+                };
             }
             catch (Exception ex)
             {

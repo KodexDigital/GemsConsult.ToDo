@@ -8,7 +8,9 @@ namespace Todo.Services.Declarations
     {
         Task<ResponseModel> CreateTodoItem(TodoDto dto);
         Task<ResponseModel<List<TodoEntity>>> GetAllTodos();
+        Task<ResponseModel<List<TodoEntity>>> AllUserTodoItems(string userId);
         Task<ResponseModel> ExecuteedItemUpdate(int itemId);
+        Task<ResponseModel<TodoEntity>> GetSingleItem(int itemId);
         Task<ResponseModel> RemoveItem(int itemId);
     }
 }

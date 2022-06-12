@@ -63,5 +63,27 @@ namespace Presentation.Controllers.VersionOne
         [ProducesResponseType(typeof(ResponseModel<IEnumerable<TodoEntity>>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetAllTodos()
            => Ok(await todoService.GetAllTodos());
+
+        /// <summary>
+        /// Get items based on a user
+        /// </summary>
+        /// <param name="userId">Request payload</param>
+        /// <returns>List of the items</returns>
+        [HttpGet, Route("userTodoItems/{userId}")]
+        [ProducesResponseType(typeof(ResponseModel<IEnumerable<TodoEntity>>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ResponseModel<IEnumerable<TodoEntity>>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetAllUserTodos(string userId)
+           => Ok(await todoService.AllUserTodoItems(userId));
+
+        /// <summary>
+        /// This endpont get a single item from the database
+        /// </summary>
+        /// <param name="itemId">Request payload</param>
+        /// <returns>Single record</returns>
+        [HttpGet, Route("getItem/{itemId}")]
+        [ProducesResponseType(typeof(ResponseModel<TodoEntity>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ResponseModel<TodoEntity>), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetSingleTodos(int itemId)
+           => Ok(await todoService.GetSingleItem(itemId));
     }
 }

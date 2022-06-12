@@ -35,8 +35,8 @@ namespace Presentation.Controllers.VersionOne
         /// <param name="request">Request payload</param>
         /// <returns>Expected success</returns>
         [HttpPost, Route("securedLogin")]
-        [ProducesResponseType(typeof(ResponseModel), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(ResponseModel), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ResponseModel<AuthenticateResponseDto>), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ResponseModel<AuthenticateResponseDto>), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> Login([FromBody] AuthenticationRequestDto request)
             => Ok(await appUserService.LoginAsync(request));
 

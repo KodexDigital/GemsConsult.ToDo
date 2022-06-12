@@ -10,5 +10,8 @@ namespace Todo.Core.Settings
 
         [JsonPropertyName("authIssuer")]
         public string AuthIssuer { get; set; }
+
+        [JsonPropertyName("authAudience")]
+        public string AuthAudience { get; set; }
     }
 }

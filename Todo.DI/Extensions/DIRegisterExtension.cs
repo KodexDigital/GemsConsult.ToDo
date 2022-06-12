@@ -45,6 +45,16 @@ namespace Todo.DI.Extensions
                     Title = "Gems-Consult Todo Service",
                     Version = "1.0",
                     Description = "This is a standardized service for organizing what to do.",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Kenneth Otoro",
+                        Email = "kodexkenth@gmail.com",
+                        Url = new Uri("https://github.com/KodexDigital/GemsConsult.ToDo")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License:MIT",
+                    }
                 });
                 c.IncludeXmlComments(Path.ChangeExtension(Assembly.GetEntryAssembly().Location, "xml"));
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
@@ -92,7 +102,7 @@ namespace Todo.DI.Extensions
                     ValidateIssuer = true,
                     ValidIssuer = Configuration.GetValue<string>("JwtSettings:authIssuer"),
                     ValidateAudience = true,
-                    ValidAudience = Configuration.GetValue<string>("JwtSettings:authIssuer"),
+                    ValidAudience = Configuration.GetValue<string>("JwtSettings:authAudience"),
                     ValidateLifetime = true,
                     RequireExpirationTime = true,
                     ClockSkew = TimeSpan.Zero,

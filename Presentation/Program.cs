@@ -80,6 +80,7 @@ app.ConfigureExceptionHandler(app.Services.GetRequiredService<ILoggerManager>())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -57,7 +57,11 @@ namespace UnitTesting
             {
                 Email = email,
                 Password = password,
-            })).ReturnsAsync(new AuthenticateResponseDto(authResponse, token));
+            })).ReturnsAsync(new ResponseModel<AuthenticateResponseDto> 
+            {
+                Status = true,
+                Data = new AuthenticateResponseDto(authResponse, token)
+            });
             Assert.True(true);
         }
 

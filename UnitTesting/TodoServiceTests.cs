@@ -51,5 +51,15 @@ namespace UnitTesting
                 .ReturnsAsync(new ResponseModel<List<TodoEntity>> { Data = items.Data });
             Assert.NotNull(todoService.Object);
         }
+
+        [Fact]
+        public void Get_All_User_Todos_Test()
+        {
+            var items = new ResponseModel<TodoEntity>();
+            var todoService = new Mock<ITodoService>();
+            todoService.Setup(a => a.GetSingleItem(1))
+                .ReturnsAsync(new ResponseModel<TodoEntity> { Data = items.Data });
+            Assert.NotNull(todoService.Object);
+        }
     }
 }

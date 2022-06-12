@@ -33,9 +33,14 @@ namespace Todo.DAL.Interfaces
                     new Claim("email", tokenData.Email),
                     new Claim("mobileNumber", tokenData.MobileNumber),
                     new Claim("applicationUserName", tokenData.Name),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Aud, jwtSettings.AuthAudience),
+                    new Claim(JwtRegisteredClaimNames.Iss, jwtSettings.AuthIssuer),
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = jwtSettings.AuthIssuer,
+                Audience = jwtSettings.AuthAudience,
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
