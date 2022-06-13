@@ -219,5 +219,46 @@ namespace Todo.Services.Implementations
                 throw;
             }
         }
+
+        public async Task<ResponseModel> EditItem(EditTodoDto dto)
+        {
+            string location = string.Concat(defaultName, "<-----", nameof(EditItem));
+            try
+            {
+                var response = new ResponseModel();
+                var item = await uow.TodoRepository.GetAsync(t => t.TodoId.Equals(dto.ItemId));
+                if (item != null)
+                {
+                    item.ItemName = dto.ItemName;
+                    item.Description = dto.Description;
+                    item.ExecutionDate = dto.ExecutionDate;
+
+                    var result = await uow.ExecuteCommandAsync();
+                    if(result > 0)
+                    {
+                        response.Status = true;
+                        response.Message = "Item edited successfully";
+                    }
+                    else
+                    {
+                        response.Status = false;
+                        response.Message = "Item could not be edited";
+                    }
+                }
+                else
+                {
+                    response.Status = false;
+                    response.Message = "Item does not exits";
+                }
+
+                logger.LogInfo($"{location} ::: {response.Message}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                logger.LogInfo($"{location} ::: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

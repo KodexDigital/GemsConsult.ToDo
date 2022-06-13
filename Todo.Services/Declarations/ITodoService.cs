@@ -12,5 +12,6 @@ namespace Todo.Services.Declarations
         Task<ResponseModel> ExecuteedItemUpdate(int itemId);
         Task<ResponseModel<TodoEntity>> GetSingleItem(int itemId);
         Task<ResponseModel> RemoveItem(int itemId);
+        Task<ResponseModel> EditItem(EditTodoDto dto);
     }
 }

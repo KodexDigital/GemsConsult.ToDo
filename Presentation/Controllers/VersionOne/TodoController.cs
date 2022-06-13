@@ -44,6 +44,17 @@ namespace Presentation.Controllers.VersionOne
             => Ok(await todoService.ExecuteedItemUpdate(itemId));
 
         /// <summary>
+        /// The endpoint is used for editing an item
+        /// </summary>
+        /// <param name="request">Request payload</param>
+        /// <returns>Expected success</returns>
+        [HttpPut, Route("editItem")]
+        [ProducesResponseType(typeof(ResponseModel), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ResponseModel), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> EditItem([FromBody] EditTodoDto request)
+            => Ok(await todoService.EditItem(request));
+
+        /// <summary>
         /// The is the endpoint to remove an item
         /// </summary>
         /// <param name="itemId">Request payload</param>

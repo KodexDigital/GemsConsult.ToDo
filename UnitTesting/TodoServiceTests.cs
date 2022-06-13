@@ -43,6 +43,19 @@ namespace UnitTesting
         }
 
         [Fact]
+        public void Edit_Item_Test()
+        {
+            var todoService = new Mock<ITodoService>();
+            todoService.Setup(e => e.EditItem(1, new Todo.Core.Dtos.TodoDto 
+            {
+                ItemName= "testing edit",
+                Description = "edited description",
+                ExecutionDate= DateTime.Now,
+            })).ReturnsAsync(new ResponseModel { Status = true });
+            Assert.True(true);
+        }
+
+        [Fact]
         public void Get_All_Todos_Test()
         {
             var items = new ResponseModel<List<TodoEntity>>();
